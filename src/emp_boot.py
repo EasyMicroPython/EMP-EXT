@@ -6,9 +6,40 @@ from emp_utils import config_path
 import os
 import machine
 
+
+
+class BOOT:
+
+    @classmethod
+    def boot(cls):
+        
+        pass
+
+    @classmethod
+    def set_boot_mode(self):
+        pass
+
+    @classmethod
+    def enable_wifi(self):
+        pass
+
+    @classmethod
+    def disable_wifi(self):
+        pass
+
+    @classmethod
+    def enable_emp(self, wireless=False):
+        pass
+
+    @classmethod
+    def disable_emp(self):
+        pass
+
+    
+
 BOOT_MODE = _const()
-BOOT_MODE.WITH_NOTHING = 0
-BOOT_MODE.WITH_WIFI_STARTUP = 1
+BOOT_MODE.NORMAL = 0
+BOOT_MODE.TURN_ON_WIFI = 1
 BOOT_MODE.EASY_DEVELOP = 2
 
 BOOT_MODE.WITH_WIFI_STARTUP_CODE = '''from emp_wifi import Wifi

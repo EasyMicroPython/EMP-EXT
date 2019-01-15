@@ -1,6 +1,7 @@
 import gc
 import os
 
+
 class _const:
     class ConstError(TypeError):
         pass
@@ -11,6 +12,7 @@ class _const:
         else:
             self.__dict__[name] = value
 
+
 def is_folder(path):
     try:
         os.listdir(path)
@@ -18,9 +20,11 @@ def is_folder(path):
     except:
         return False
 
+
 def post_ip(ip):
     import urequests
     urequests.post('http://www.1zlab.com/ide/post/ip/?esp_ip=%s,' % ip)
+
 
 def traverse(path):
     n = dict(name=path, children=[])
@@ -28,8 +32,9 @@ def traverse(path):
         if is_folder(path + '/' + i):
             n['children'].append(traverse(path + '/' + i))
         else:
-            n['children'].append(dict(name=path + '/' +i))
+            n['children'].append(dict(name=path + '/' + i))
     return n
+
 
 def config_path():
     try:
@@ -43,6 +48,7 @@ def config_path():
 def webrepl_pass():
     with open('config/webrepl.pass', 'r') as f:
         return f.read()
+
 
 def rainbow(output, color=None):
     if color:
@@ -69,7 +75,11 @@ def print_right_just(output, length):
 
 
 def print_as_a_list_item(index, title, subtile=None):
-    index = ('[%s]' % str(index)).center(8).lstrip()
+
+    # esp8266 don't support center
+    index = '[%s]' % str(index)
+    index = index + (8-len(index)) * ' '
+
     title = print_left_just(rainbow(title, color='green'))
     if subtile:
         subtile = '\n' + len(index) * ' ' + subtile
@@ -89,10 +99,6 @@ def selection(hint, range):
 
 
 def mem_analyze(func):
-    """
-    装饰器:内存分析
-    """
-
     def wrapper(*args, **kwargs):
         memory_alloc = 'memory alloced: %s kb' % str(gc.mem_alloc() / 1024)
         memory_free = 'memory free: %s kb' % str(gc.mem_free() / 1024)
@@ -109,6 +115,7 @@ def mem_analyze(func):
 
     return wrapper
 
+
 def sync_time():
     import urequests
     from machine import RTC
@@ -118,4 +125,3 @@ def sync_time():
     # print(time)
     rtc.init(tuple(time['rtc']))
     print('after sync: ', rtc.datetime())
-    
