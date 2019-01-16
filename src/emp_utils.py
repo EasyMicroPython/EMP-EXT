@@ -1,6 +1,6 @@
 import gc
 import os
-
+import json
 
 class _const:
     class ConstError(TypeError):
@@ -11,6 +11,40 @@ class _const:
             raise self.ConstError("Can't rebind const (%s)" % name)
         else:
             self.__dict__[name] = value
+
+
+class Config:
+
+    def __init__(self, path='config', profile=None, options=None):
+        self.path = path
+        self.profile = profile
+        self.options = options
+        self._init_profile()
+
+    def _init_profile(self):
+        try:
+            os.listdir(self.path)
+        except OSError:
+            os.mkdir(self.path)
+        finally:
+            assert type(self.profile) == str, 'Profile must be a string'
+            if self.profile in os.listdir(self.path):
+                pass
+            else:
+                with open('%s/%s' % (self.path, self.profile), 'w') as f:
+                    f.write(json.dumps(self.options))
+
+    def read_profile(self):
+        with open('%s/%s' % (self.path, self.profile), 'r') as f:
+            return json.loads(f.read())
+
+    def update_profile(self, kwargs):
+        profile = self.read_profile()
+        for key, value in zip(kwargs.keys(), kwargs.values()):
+            profile[key] = value
+
+        with open('%s/%s' % (self.path, self.profile), 'w') as f:
+            f.write(json.dumps(profile))
 
 
 def is_folder(path):
@@ -46,8 +80,14 @@ def config_path():
 
 
 def webrepl_pass():
-    with open('config/webrepl.pass', 'r') as f:
-        return f.read()
+    try:
+        with open('config/webrepl.pass', 'r') as f:
+
+            return f.read() if len(f.read()) > 0 else '1zlab'
+    except:
+        with open('config/webrepl.pass', 'w') as f:
+            f.write('1zlab')
+        return '1zlab'
 
 
 def rainbow(output, color=None):
@@ -62,25 +102,25 @@ def rainbow(output, color=None):
         return output
 
 
-def print_left_just(output, length=None):
+def left_just(output, length=None):
     if length == None:
         length = len(output)
     return output + (length - len(output)) * ' '
 
 
-def print_right_just(output, length):
+def right_just(output, length):
     if length == None:
         length = len(output)
     return (length - len(output)) * ' ' + output
 
 
-def print_as_a_list_item(index, title, subtile=None):
+def list_item(index, title, subtile=None):
 
     # esp8266 don't support center
     index = '[%s]' % str(index)
     index = index + (8-len(index)) * ' '
 
-    title = print_left_just(rainbow(title, color='green'))
+    title = left_just(rainbow(title, color='green'))
     if subtile:
         subtile = '\n' + len(index) * ' ' + subtile
     else:

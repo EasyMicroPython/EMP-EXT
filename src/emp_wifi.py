@@ -1,9 +1,10 @@
 import network
 import json
 from emp_utils import rainbow
-from emp_utils import print_as_a_list_item
+from emp_utils import list_item
 from emp_utils import selection
 from emp_utils import config_path
+from emp_utils import Config
 
 
 class Wifi():
@@ -45,12 +46,12 @@ class Wifi():
         records = config.get('records')
 
         for index, item in enumerate(records):
-            print(print_as_a_list_item(index, item))
+            print(list_item(index, item))
 
         default = selection(
             'Please select an option as default wifi connection [0-%s]' % str(
                 len(records - 1)), len(records - 1))
-        
+
         config['default'] = records[default]
         cls.update_profile(config)
 
@@ -103,7 +104,7 @@ class Wifi():
         if worker.is_connected():
             s0 = 'You have already established a Wifi connection.'
             print(rainbow(s0, color='green'))
-        else:   
+        else:
             default = cls.get_default()
             if default:
                 records = cls.get_records().insert(0, default)
@@ -117,7 +118,7 @@ class Wifi():
                     print(rainbow(s1, color='blue'))
                     if not worker.do_connect(*i):
                         s2 = 'Automatic connection to %s failed' % i[0]
-                        print(rainbow(s2,color='red'))
+                        print(rainbow(s2, color='red'))
                         cls.del_record(i[0])
                         worker._wifi.active(True)
                         continue
@@ -143,12 +144,12 @@ class NetWorker():
             cls._instance._wifi.active(True)
             cls._instance._essid = None
         return cls._instance
-            
+
     def scan(self):
         def _list_wifi(index, essid, dbm):
             _index = ('[%s]' % str(index)).center(8).lstrip()
-            _essid = rainbow(essid + (40 - len(essid)) * ' ',color='red')
-            _dbm = rainbow(dbm.center(10).lstrip(),color='blue')
+            _essid = rainbow(essid + (40 - len(essid)) * ' ', color='red')
+            _dbm = rainbow(dbm.center(10).lstrip(), color='blue')
             print('{0} {1} {2} dBm'.format(_index, _essid, _dbm))
         # TODO 字符编码容错
 
@@ -157,7 +158,7 @@ class NetWorker():
             try:
                 nw = dict(essid=i[0].decode(), dbm=str(i[3]))
             except:
-                nw = dict(essid=i[0] , dbm=str(i[3]))
+                nw = dict(essid=i[0], dbm=str(i[3]))
             finally:
                 networks.append(nw)
         # networks = [dict(essid=i[0].decode(),dbm=str(i[3])) for i in self._wifi.scan()]
@@ -218,21 +219,21 @@ class NetWorker():
                 self.ifconfig()
                 if not Wifi.is_in_records(essid):
                     Wifi.add_record(essid, passwd)
-                
+
                 return True
         else:
-            print(rainbow('You have already established a Wifi connection.',color='green'))
+            print(
+                rainbow('You have already established a Wifi connection.', color='green'))
             return True
 
     def disconnect(self):
         self._wifi.active(False)
-        print(rainbow('WIFI connection has been disconnected',color='red'))
-    
+        print(rainbow('WIFI connection has been disconnected', color='red'))
+
     @classmethod
     def worker(cls):
         return NetWorker()
 
-    
 
 if __name__ == '__main__':
     Wifi.connect()

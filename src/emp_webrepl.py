@@ -14,10 +14,8 @@ class WebREPL():
     _instance = None
 
     @classmethod
-    def send(cls,json_data):
+    def send(cls, json_data):
         WebREPL().ws.write(json_data)
-
-
 
     def __new__(cls):
         if not cls._instance:
@@ -29,7 +27,7 @@ class WebREPL():
         return cls._instance
 
     @classmethod
-    def setup_conn(cls,port, accept_handler):
+    def setup_conn(cls, port, accept_handler):
         WebREPL().listen_s = socket.socket()
         WebREPL().listen_s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -43,17 +41,19 @@ class WebREPL():
         for i in (network.AP_IF, network.STA_IF):
             iface = network.WLAN(i)
             if iface.active():
-                print(rainbow("WebREPL daemon started on ws://%s:%d" % (iface.ifconfig()[0], port), color='green'))
+                print(rainbow("WebREPL daemon started on ws://%s:%d" %
+                              (iface.ifconfig()[0], port), color='green'))
         return WebREPL().listen_s
 
     @classmethod
-    def accept_conn(cls,listen_sock):
+    def accept_conn(cls, listen_sock):
 
         cl, remote_addr = listen_sock.accept()
         prev = uos.dupterm(None)
         uos.dupterm(prev)
         if prev:
-            print("\nConcurrent WebREPL connection from", remote_addr, "rejected")
+            print("\nConcurrent WebREPL connection from",
+                  remote_addr, "rejected")
             cl.close()
             return
         print("\nWebREPL connection from:", remote_addr)
@@ -67,7 +67,6 @@ class WebREPL():
         # notify REPL on socket incoming data
         cl.setsockopt(socket.SOL_SOCKET, 20, uos.dupterm_notify)
         uos.dupterm(WebREPL().wr)
-        
 
     @classmethod
     def stop(cls):
@@ -78,7 +77,7 @@ class WebREPL():
             WebREPL().listen_s.close()
 
     @classmethod
-    def start(cls,port=8266, password=None):
+    def start(cls, port=8266, password=None):
         WebREPL().stop()
         if password is None:
             try:
@@ -94,16 +93,12 @@ class WebREPL():
             print(rainbow("WebREPL started.", color='green'))
 
     @classmethod
-    def start_foreground(cls,port=8266):
+    def start_foreground(cls, port=8266):
         WebREPL().stop()
         s = WebREPL().setup_conn(port, None)
         WebREPL().accept_conn(s)
 
 
-
-def emp_sender(func):
-    def wrapper(*args, **kwargs):     
-        rsp = dict(func=func.__name__, data=func(*args, **kwargs))
-        WebREPL.send(json.dumps(rsp) + '\n\r')
-        gc.collect()
-    return wrapper
+def main():
+    from emp_utils import webrepl_pass
+    WebREPL.start(password=webrepl_pass())

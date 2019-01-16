@@ -20,7 +20,7 @@ def emp_sender(func):
     return wrapper
 
 
-class EMP:
+class IDE:
     def __init__(self, repl_type=0):
         repl_types = (0, 1)
         if repl_type in repl_types:
@@ -102,3 +102,7 @@ class EMP:
         except:
             import upip
             upip.install(pkg)
+
+
+ide = IDE(0)
+web_ide = IDE(1)
