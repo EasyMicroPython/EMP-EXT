@@ -2,6 +2,7 @@ import gc
 import os
 import json
 
+
 class _const:
     class ConstError(TypeError):
         pass
@@ -130,7 +131,7 @@ def list_item(index, title, subtile=None):
 
 def selection(hint, range):
 
-    index = input(rainbow(hint, color='blue'))
+    index = input(rainbow('%s [0-%s] ' % (hint, range), color='blue'))
     if int(index) > range or int(index) < 0:
         print(rainbow('out of range!', color='red'))
         selection(hint, range)

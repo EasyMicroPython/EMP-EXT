@@ -5,10 +5,10 @@ import machine
 from emp_utils import config_path, list_item, rainbow, selection, Config
 
 options = {
-    'enable_wifi': 0,
+    'enable_wifi': True,
     'emp_ide': {
-        'enable': 1,
-        'wireless': 2
+        'enable': True,
+        'wireless': False
     }
 }
 
@@ -22,15 +22,17 @@ class Boot(Config):
 
         configs = self.read_profile()
         if configs['enable_wifi']:
-            from emp_wifi import Wifi
-            Wifi.connect()
-        if configs['emp_ide']['enable']:
+            import emp_wifi
 
+        if configs['emp_ide']['enable']:
+            global ide
             if configs['emp_ide']['wireless']:
-                import emp_webrepl
-                from emp_ide import web_ide as ide
+
+                foo = __import__('emp_ide', globals(), locals())
+                ide = foo.web_ide
             else:
-                from emp_ide import ide
+                foo = __import__('emp_ide', globals(), locals())
+                ide = foo.ide
 
     def set_mode(self):
         print(list_item(0, 'Normal', 'Normal start'))
@@ -41,7 +43,7 @@ class Boot(Config):
         print(list_item(3, 'EMP-IDE-WebSocket',
                         'In this mode, You can use EMP-IDE via websocket connection.'))
 
-        mode = selection('Please input your choice [0-3]: ', 3)
+        mode = selection('Please input your choice: ', 3)
         boot_options = None
         if mode == 0:
             boot_options = [False, False, False]
@@ -72,17 +74,11 @@ class Boot(Config):
             f.write('import emp_boot')
 
 
+try:
+    import esp
+    esp.osdebug(None)
+except ImportError:
+    pass
+
 boot = Boot()
-
-
-def main():
-    try:
-        import esp
-        esp.osdebug(None)
-    except ImportError:
-        pass
-
-    boot.start()
-
-
-main()
+boot.start()

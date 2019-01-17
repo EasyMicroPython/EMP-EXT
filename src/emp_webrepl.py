@@ -102,3 +102,5 @@ class WebREPL():
 def main():
     from emp_utils import webrepl_pass
     WebREPL.start(password=webrepl_pass())
+
+main()

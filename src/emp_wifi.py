@@ -1,164 +1,119 @@
-import network
 import json
-from emp_utils import rainbow
-from emp_utils import list_item
-from emp_utils import selection
-from emp_utils import config_path
-from emp_utils import Config
+
+import network
+from emp_utils import Config, config_path, list_item, rainbow, selection
+
+_options = {
+    'default': {
+        'essid': '',
+    },
+    'records': {
+        'example_essid': 'example_passwd'
+    }
+}
 
 
-class Wifi():
-    _profile = 'config/emp_wifi.json'
+class WiFi(Config):
+    def __init__(self, profile='emp_wifi.json', options=_options):
+        super().__init__(profile=profile, options=options)
+        self._wifi = network.WLAN(network.STA_IF)
+        self._essid = ''
 
-    @classmethod
-    def create_profile(cls):
-        default = ()
-        records = []
-        default_config = dict(default=default, records=records)
-        cls.update_profile(default_config)
-        print(rainbow('created config/wifi_cfg.json', color='blue'))
+    def get_records(self):
+        profile = self.read_profile()
+        return profile['records']
 
-    @classmethod
-    def update_profile(cls, config):
-        config_path()
-        with open(cls._profile, 'w') as f:
-            f.write(json.dumps(config))
+    def is_in_records(self, essid):
+        return essid in self.get_records().keys()
 
-    @classmethod
-    def read_config(cls):
-        try:
-            with open(cls._profile, 'r') as f:
-                return json.loads(f.read())
-        except:
-            cls.create_profile()
-            default = ()
-            records = []
-            return dict(default=default, records=records)
+    def get_default(self):
+        return self.read_profile()['default']
 
-    @classmethod
-    def get_default(cls):
-        config = cls.read_config()
-        return config.get('default') if config else ()
+    def set_default(self, essid=None):
+        if essid is None:
+            records = list(self.get_records().keys())
+            for index, item in enumerate(records):
+                print(list_item(index, item))
 
-    @classmethod
-    def set_default(cls, essid):
-        config = cls.read_config()
-        records = config.get('records')
+            option = selection(
+                'Please select an option as default wifi connection [0-%s]' % str(
+                    len(records) - 1), len(records) - 1)
 
-        for index, item in enumerate(records):
-            print(list_item(index, item))
-
-        default = selection(
-            'Please select an option as default wifi connection [0-%s]' % str(
-                len(records - 1)), len(records - 1))
-
-        config['default'] = records[default]
-        cls.update_profile(config)
-
-    @classmethod
-    def get_records(cls):
-        config = cls.read_config()
-        return config.get('records') if config else []
-
-    @classmethod
-    def is_in_records(cls, essid):
-        for i in cls.get_records():
-            if essid == i[0]:
-                return i
-        return ()
-
-    @classmethod
-    def add_record(cls, essid, passwd):
-        config = cls.read_config()
-        config['records'].append((essid, passwd))
-        cls.update_profile(config)
-        print(rainbow('Added record: %s' % essid, color='green'))
-
-    @classmethod
-    def del_record(cls, essid):
-        config = cls.read_config()
-        for index, i in enumerate(config.get('records')):
-            if essid == i[0]:
-                config['records'].pop(index)
-                cls.update_profile(config)
-                print(rainbow('Record deleted: %s' % essid, color='green'))
-                return True
-        return False
-
-    @classmethod
-    def update_record(cls, essid, passwd):
-        config = cls.read_config()
-        for index, i in enumerate(config['records']):
-            if i[0] == essid:
-                config['records'][index] = (essid, passwd)
-                return True
-        return False
-
-    @classmethod
-    def ifconfig(cls):
-        return NetWorker.worker().ifconfig()
-
-    @classmethod
-    def connect(cls):
-        worker = NetWorker.worker()
-        if worker.is_connected():
-            s0 = 'You have already established a Wifi connection.'
-            print(rainbow(s0, color='green'))
+            default = {'default': {'essid': records[option]}}
+            self.update_profile(default)
         else:
-            default = cls.get_default()
-            if default:
-                records = cls.get_records().insert(0, default)
+            default = {'default': {'essid': essid}}
+            self.update_profile(default)
+
+    def del_record(self, essid=None):
+        if essid is None:
+            records = self.get_records()
+            essids = [i for i in records.keys()]
+            for index, item in enumerate(essids):
+                print(list_item(index, item))
+
+            option = selection(
+                'Please select an option to delete [0-%s]' % str(
+                    len(list(records.keys())) - 1), len(list(records.keys())) - 1)
+
+            essid = essids[option]
+            records.pop(essid)
+            records = {'records': records}
+            self.update_profile(records)
+        elif self.is_in_records(essid):
+            records.pop(essid)
+            records = {'records': records}
+            self.update_profile(records)
+
+        else:
+            print(rainbow('The record was not found', color='red'))
+
+    def add_record(self, essid, passwd):
+        records = self.get_records()
+        if essid in records.keys():
+            if passwd == records[essid]:
+                pass
             else:
-                records = cls.get_records()
-            # print(records)
-            networks = [i.get('essid') for i in worker.scan()]
-            for i in records:
-                if i[0] in networks:
-                    s1 = 'Trying to connect automatically to %s ...' % i[0]
-                    print(rainbow(s1, color='blue'))
-                    if not worker.do_connect(*i):
-                        s2 = 'Automatic connection to %s failed' % i[0]
-                        print(rainbow(s2, color='red'))
-                        cls.del_record(i[0])
-                        worker._wifi.active(True)
-                        continue
-                    else:
-                        s3 = 'Automatically connect to %s successfully' % i[0]
-                        print(rainbow(s3, color='green'))
-                        return True
-            print(rainbow('No record available', color='red'))
-            worker.before_connect()
+                # n = len([0 for i in records.keys() if essid in i])
+                # new_record = '%s#%s' % (essid, n) if n != 0 else essid
+                # records[new_record] = passwd
+                records[essid] = passwd
 
-    @classmethod
-    def disconnect(cls):
-        NetWorker.worker().disconnect()
+        else:
+            records[essid] = passwd
 
+        records = {'records': records}
+        self.update_profile(records)
 
-class NetWorker():
-    _instance = None
+    def get_passwd(self, essid):
+        if self.is_in_records(essid):
+            return self.get_records()[essid]
+        else:
+            return None
 
-    def __new__(cls):
-        if not cls._instance:
-            cls._instance = super(NetWorker, cls).__new__(cls)
-            cls._instance._wifi = network.WLAN(network.STA_IF)
-            cls._instance._wifi.active(True)
-            cls._instance._essid = None
-        return cls._instance
+    def scan(self, noreturn=True, noprint=False):
+        self._wifi.active(True)
+        print(rainbow('==> Scaning networks...', color='green'))
 
-    def scan(self):
         def _list_wifi(index, essid, dbm):
-            _index = ('[%s]' % str(index)).center(8).lstrip()
-            _essid = rainbow(essid + (40 - len(essid)) * ' ', color='red')
-            _dbm = rainbow(dbm.center(10).lstrip(), color='blue')
-            print('{0} {1} {2} dBm'.format(_index, _essid, _dbm))
-        # TODO 字符编码容错
+            try:
+                _index = ('[%s]' % str(index)).center(8).lstrip()
+                _essid = rainbow(essid + (40 - len(essid)) * ' ', color='red')
+                _dbm = rainbow(dbm.center(10).lstrip(), color='blue')
+            except AttributeError:
+                _index = ('[%s]' % str(index)).lstrip()
+                _essid = rainbow(essid + (40 - len(essid)) * ' ', color='red')
+                _dbm = rainbow(dbm.lstrip(), color='blue')
+            if not noprint:
+                print('{0} {1} {2} dBm'.format(_index, _essid, _dbm))
 
         networks = []
         for i in self._wifi.scan():
+            # string decode may raise error
             try:
-                nw = dict(essid=i[0].decode(), dbm=str(i[3]))
+                nw = dict(essid=i[0].decode('utf-8'), dbm=str(i[3]))
             except:
-                nw = dict(essid=i[0], dbm=str(i[3]))
+                nw = dict(essid=str(i[0], 'ascii'), dbm=str(i[3]))
             finally:
                 networks.append(nw)
         # networks = [dict(essid=i[0].decode(),dbm=str(i[3])) for i in self._wifi.scan()]
@@ -166,74 +121,128 @@ class NetWorker():
         for i, item in enumerate(networks):
             _list_wifi(i, item['essid'], item['dbm'])
 
-        return networks
+        if not noreturn:
+            return networks
 
-    def ifconfig(self):
-        info = self._wifi.ifconfig()
-        print(rainbow('You are connected to %s' % self._essid))
-        print(rainbow('IP: ' + info[0], color='red'))
-        print(rainbow('Netmask: ' + info[1], color='green'))
-        print(rainbow('Gateway: ' + info[2], color='blue'))
-        return info, self._essid
+    def auto_connect(self):
+        if self._wifi.isconnected():
+            print(
+                rainbow('You have already established a Wifi connection.', color='blue'))
 
-    def is_connected(self):
-        return self._wifi.isconnected()
-
-    def before_connect(self):
-        print('scaning networks...')
-        networks = self.scan()
-        selection = input(
-            'Which one do you want to access? [0-%s]' % str(len(networks) - 1))
-        if int(selection) > len(networks) - 1:
-            print('your choice is out of range!')
-            self.before_connect()
-        essid = networks[int(selection)]['essid']
-
-        passwd = input('Password for %s: ' % essid)
-
-        if not self.do_connect(essid, passwd):
-            self.before_connect()
-
-    def do_connect(self, essid, passwd):
-        if not self._wifi.isconnected():
-            print('connecting to network...')
-            self._wifi.active(True)
-            self._wifi.connect(essid, passwd)
-            import utime
-
-            for i in range(300):
-                if self._wifi.isconnected():
-                    break
-                utime.sleep_ms(100)
-
-            if not self._wifi.isconnected():
-                self._wifi.active(False)
-                print(
-                    rainbow(
-                        'wifi connection error, please reconnect',
-                        color='red'))
-                return False
+        else:
+            if len(list(self.get_records().keys())) == 0:
+                # 没有记录就直接连接
+                self.connect()
 
             else:
-                self._essid = essid
-                self.ifconfig()
-                if not Wifi.is_in_records(essid):
-                    Wifi.add_record(essid, passwd)
+                # 先查找是否有default值
+                default_essid = self.get_default()['essid']
+                # default 值不能为空
+                if default_essid:
+                    essids_in_records = [default_essid] + \
+                        list(self.get_records().keys())
+                else:
+                    essids_in_records = list(self.get_records().keys())
 
-                return True
+                records = self.get_records()
+
+                networks = [i['essid'] for i in self.scan(noreturn=False)]
+                for essid in essids_in_records:
+
+                    if essid in networks:
+                        print(
+                            rainbow('==> Trying to automatically connect to %s ...' % essid, color='blue'))
+                        if self.connect(essid=essid, passwd=records[essid], noreturn=False):
+                            print(
+                                rainbow('==> Automatically connect to %s successfully' % essid, color='green'))
+                            return
+                        else:
+                            print(
+                                rainbow('==> Automatic connection to %s failed' % essid, color='red'))
+                            self.del_record(essid)
+                            continue
+
+                print(rainbow('!!! No record available.', color='red'))
+                self.connect()
+
+    def _do_connect(self, essid, passwd):
+        self._wifi.active(True)
+        self._wifi.connect(essid, passwd)
+        import time
+
+        for i in range(300):
+            if self._wifi.isconnected():
+                break
+            try:
+                time.sleep_ms(100)
+            except AttributeError:
+                time.sleep(0.1)
+
+        if not self._wifi.isconnected():
+            self._wifi.active(False)
+            print(rainbow('!!! WiFi connection error, please reconnect', color='red'))
+            return False
+
         else:
-            print(
-                rainbow('You have already established a Wifi connection.', color='green'))
+            self._essid = essid
+            self.ifconfig(noreturn=False)
+            if not self.is_in_records(essid):
+                self.add_record(essid, passwd)
             return True
+
+    def connect(self, essid=None, passwd=None, noreturn=True):
+
+        if essid is not None:
+            if essid in [i['essid'] for i in self.scan(noreturn=False, noprint=True)]:
+                if passwd is not None:
+                    result = self._do_connect(essid, passwd)
+                    if not noreturn:
+                        return result
+                else:
+                    # 只传入essid 便去查找记录以获得密码
+                    passwd = self.get_passwd(essid)
+                    if passwd is not None:
+                        result = self._do_connect(
+                            essid, self.get_passwd(essid))
+                        if not noreturn:
+                            return result
+                    else:
+                        print(rainbow('!!! The record was not found.', color='red'))
+                        if not noreturn:
+                            return False
+            else:
+                print(rainbow('!!! AP[ %s ] not found.' % essid, color='red'))
+                if not noreturn:
+                    return False
+
+        else:
+            networks = [i['essid'] for i in self.scan(noreturn=False)]
+            select = selection('Choose a WiFi to connect', len(networks)-1)
+            passwd = input('Password: ')
+            essid = networks[select]
+            result = self._do_connect(essid, passwd)
+            if not noreturn:
+                return result
 
     def disconnect(self):
         self._wifi.active(False)
-        print(rainbow('WIFI connection has been disconnected', color='red'))
 
-    @classmethod
-    def worker(cls):
-        return NetWorker()
+    def ifconfig(self, noreturn=True):
+        info = self._wifi.ifconfig()
+        print(rainbow('==> You are connected to %s' %
+                      self._essid, color='green'))
+        print(rainbow(' --> IP: ' + info[0], color='blue'))
+        print(rainbow(' --> Netmask: ' + info[1], color='blue'))
+        print(rainbow(' --> Gateway: ' + info[2], color='blue'))
+        if not noreturn:
+            return info, self._essid
 
 
-if __name__ == '__main__':
-    Wifi.connect()
+wifi = WiFi()
+
+
+def main():
+    wifi.auto_connect()
+
+
+main()
