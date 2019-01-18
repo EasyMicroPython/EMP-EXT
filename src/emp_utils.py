@@ -1,6 +1,6 @@
 import gc
-import os
 import json
+import os
 
 
 class _const:
@@ -137,6 +137,41 @@ def selection(hint, range):
         selection(hint, range)
     else:
         return int(index)
+
+
+def set_boot_mode():
+    print(list_item(0, 'Normal', 'Normal start'))
+    print(list_item(1, 'Turn on WiFi',
+                    'Automatically connect to WiFi when booting.'))
+    print(list_item(2, 'EMP-IDE-SerialPort',
+                    'This mode is for developers. You can use EMP-IDE via serialport connection.'))
+    print(list_item(3, 'EMP-IDE-WebSocket',
+                    'In this mode, You can use EMP-IDE via websocket connection.'))
+
+    mode = selection('Please input your choice: ', 3)
+    boot_scripts = None
+    if mode == 0:
+        boot_scripts = ''
+        print(rainbow('Boot mode: Normal', color='green'))
+    elif mode == 1:
+        boot_scripts = 'import emp_wifi'
+        print(rainbow('Boot mode: Turn on WiFi', color='green'))
+
+    elif mode == 2:
+        boot_scripts = 'from emp_ide import ide'
+        print(rainbow('Boot mode: EMP-IDE-SerialPort', color='green'))
+
+    elif mode == 3:
+        boot_scripts = 'from emp_webide import ide'
+        print(rainbow('Boot mode: EMP-IDE-WebSocket', color='green'))
+
+    with open('/boot.py', 'w') as f:
+        f.write(boot_scripts)
+
+    reboot = input('Reboot right now? [y/n]\n')
+    if reboot in ['', 'y', 'Y', 'yes', 'Yes', 'YES']:
+        import machine
+        machine.reset()
 
 
 def mem_analyze(func):

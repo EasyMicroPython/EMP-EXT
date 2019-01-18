@@ -152,7 +152,7 @@ class WiFi(Config):
                     if essid in networks:
                         print(
                             rainbow('==> Trying to automatically connect to %s ...' % essid, color='blue'))
-                        if self.connect(essid=essid, passwd=records[essid], noreturn=False):
+                        if self.connect(essid=essid, passwd=records[essid], noreturn=False, apexist=True):
                             print(
                                 rainbow('==> Automatically connect to %s successfully' % essid, color='green'))
                             return
@@ -190,10 +190,14 @@ class WiFi(Config):
                 self.add_record(essid, passwd)
             return True
 
-    def connect(self, essid=None, passwd=None, noreturn=True):
+    def connect(self, essid=None, passwd=None, noreturn=True, apexist=None):
 
         if essid is not None:
-            if essid in [i['essid'] for i in self.scan(noreturn=False, noprint=True)]:
+            if apexist is None:
+                apexist = essid in [i['essid']
+                                    for i in self.scan(noreturn=False, noprint=True)]
+
+            if apexist:
                 if passwd is not None:
                     result = self._do_connect(essid, passwd)
                     if not noreturn:
@@ -239,10 +243,4 @@ class WiFi(Config):
 
 
 wifi = WiFi()
-
-
-def main():
-    wifi.auto_connect()
-
-
-main()
+wifi.auto_connect()
