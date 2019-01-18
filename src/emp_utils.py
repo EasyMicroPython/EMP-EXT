@@ -3,17 +3,6 @@ import json
 import os
 
 
-class _const:
-    class ConstError(TypeError):
-        pass
-
-    def __setattr__(self, name, value):
-        if self.__dict__.get(name):
-            raise self.ConstError("Can't rebind const (%s)" % name)
-        else:
-            self.__dict__[name] = value
-
-
 class Config:
 
     def __init__(self, path='config', profile=None, options=None):
