@@ -3,7 +3,8 @@ import json
 import os
 import sys
 
-from emp_utils import is_folder, traverse, webrepl_pass
+from emp_utils import is_folder, traverse
+from emp_utils import WebREPL
 
 
 def emp_sender(func):
@@ -14,10 +15,8 @@ def emp_sender(func):
             sys.stdout.write(
                 b'\033[1;32m==> PDU START\n\n%s\n\n==> PDU END\033[0m\n\r' % json.dumps(rsp))
         else:
-            try:
-                webrepl.send(json.dumps(rsp) + '\n\r')
-            except:
-                pass
+            WebREPL.send(json.dumps(rsp) + '\n\r')
+
         gc.collect()
     return wrapper
 

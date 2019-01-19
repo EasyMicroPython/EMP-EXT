@@ -1,9 +1,9 @@
 import json
 
 import network
-from emp_utils import Config, config_path, list_item, rainbow, selection
+from emp_utils import Config, list_item, rainbow, selection
 
-_options = {
+options = {
     'default': {
         'essid': '',
     },
@@ -14,7 +14,7 @@ _options = {
 
 
 class WiFi(Config):
-    def __init__(self, profile='emp_wifi.json', options=_options):
+    def __init__(self, profile='emp_wifi.json', options=options):
         super().__init__(profile=profile, options=options)
         self._wifi = network.WLAN(network.STA_IF)
         self._essid = ''
