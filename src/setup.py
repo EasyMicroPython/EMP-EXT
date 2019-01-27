@@ -1,8 +1,8 @@
 from distutils.core import setup
 
 setup(
-    name='emp-1zlab-dev',
-    version='1.8',
+    name='emp-ext',
+    version='1.9',
     py_modules=['emp_wifi', 'emp_webide', 'emp_ide', 'emp_utils'],
     author='singein',
     author_email='singein@outlook.com',
