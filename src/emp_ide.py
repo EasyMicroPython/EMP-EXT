@@ -13,7 +13,7 @@ def emp_sender(func):
         repl_type = rsp['repl_type']
         if repl_type == 0:
             sys.stdout.write(
-                b'\033[1;32m==> PDU START\n\n%s\n\n==> PDU END\033[0m\n\r' % json.dumps(rsp))
+                b'==> PDU START\n\n%s\n\n==> PDU END\n\r' % json.dumps(rsp))
         else:
             WebREPL.send(json.dumps(rsp) + '\n\r')
 
