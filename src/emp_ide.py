@@ -60,7 +60,7 @@ class IDE:
         with open(filename, 'rb') as f:
             code = f.read()
             rsp = {'repl_type': self.repl_type, 'func': 'get_code', 'data': dict(
-                code=str(code), filename=filename)}
+                code=str(code)[2:-1:].replace(r'\\n', '\n'), filename=filename)}
             self.memory_status()
         return rsp
 
