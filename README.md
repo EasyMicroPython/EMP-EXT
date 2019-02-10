@@ -44,7 +44,7 @@ IDE的数据交互是通过REPL的输入与输出来完成的。
 
 
 ### 开机自动加载
-如果你想要开机自动加载以上两种的任何一种模式，都很简单：
+如果你想要开机自动加载以上两种的任何一种模式的指令集：
 ```python
 >>> from emp_utils import set_boot_mode
 >>> set_boot_mode()
