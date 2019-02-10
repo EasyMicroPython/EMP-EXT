@@ -57,10 +57,10 @@ class IDE:
     @emp_sender
     def get_code(self, filename):
         gc.collect()
-        with open(filename, 'r') as f:
+        with open(filename, 'rb') as f:
             code = f.read()
             rsp = {'repl_type': self.repl_type, 'func': 'get_code', 'data': dict(
-                code=code, filename=filename)}
+                code=str(code), filename=filename)}
             self.memory_status()
         return rsp
 
