@@ -15,7 +15,7 @@ IDE的数据交互是通过REPL的输入与输出来完成的。
 ## 安装
 ### 使用upip
 该项目已上传至Pypi，我们可以使用`upip`在MicroPython上进行安装，也可以使用`emptool`，通过PC为MicroPython设备进行安装。
-在诸如ESP32等一些物联网MCU上你可以很容易的安装`emp`，通过使用`upip`
+在诸如ESP32等一些物联网MCU上你可以很容易的安装`emp-ext`，通过使用`upip`
 
 ```python
 >>> import upip
@@ -23,9 +23,19 @@ IDE的数据交互是通过REPL的输入与输出来完成的。
 ```
 
 ### 使用emptool
+在ESP8266上由于内存的紧缺,通常你都无法正常的使用upip进行下载，或者有的MicroPython设备本身不具备Wifi接入网络的能力。所以这时`emptool`就派上用场了。
+首先你需要获取到`emptool`这款工具:
+```bash
+pip install emptool
+```
 
-> TODO
-
+然后我们可以使用emptool在PC端为MicroPython辅助进行下载：
+```bash
+sudo emptool pip_install emp-ext --device=/dev/ttyUSB0
+# 注意将device参数值/dev/ttyUSB0替换为你的PC上串口ID的标识
+# 在Mac上可能类似于：/dev/cu.SLAB_USBtoUART，
+# 在Windows上类似于COM1
+```
 
 ## 使用
 安装完成之后，你便可以使用如下的指令来开启EMP-IDE指令集，以便EMP-IDE进行调用：
