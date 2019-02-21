@@ -6,9 +6,12 @@ import socket
 import _webrepl
 import network
 import uos
-import websocket
 import websocket_helper
 
+try:
+    import websocket
+except ImportError:
+    import uwebsocket
 
 
 class Config:
